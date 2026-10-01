@@ -1,0 +1,53 @@
+# Replace both partner-name placeholders in source headers before submission.
+# Parameters are startup-only. Edit this file, then restart the launch.
+detect_object:
+  ros__parameters:
+    image_topic: /camera/image_raw/compressed
+    image_transport: compressed
+    camera_info_topic: /camera/camera_info
+    camera_frame: camera_optical_frame  # fallback only when image.header.frame_id is empty
+    bearing_topic: /object/bearing
+    debug_image_topic: /object/debug_image
+    hsv_lower: [35, 70, 60]            # OpenCV HSV: H 0..179, S/V 0..255; green target
+    hsv_upper: [85, 255, 255]
+    min_area: 150.0
+    morph_kernel: 3
+    horizontal_fov_deg: 62.2           # fallback estimate; replace with camera's measured value
+
+get_object_range:
+  ros__parameters:
+    bearing_topic: /object/bearing
+    scan_topic: /scan
+    polar_topic: /object/polar
+    base_frame: base_link
+    sync_queue_size: 10
+    sync_slop: 0.12                   # seconds, maximum camera/scan timestamp mismatch
+    max_sensor_age: 0.5               # seconds, sensor source age
+    max_future_stamp: 0.1
+    roi_fraction: 0.7                 # central fraction of detected angular interval
+    cluster_gap: 0.15                 # max separation between neighboring laser returns, m
+    min_cluster_points: 2             # rejects isolated laser speckles
+
+chase_object:
+  ros__parameters:
+    polar_topic: /object/polar
+    cmd_vel_topic: /cmd_vel
+    cmd_vel_stamped: false            # true only if your base expects TwistStamped
+    base_frame: base_link
+    control_rate_hz: 20.0
+    target_distance: 0.6              # distance from base origin to target surface, m
+    distance_deadband: 0.05
+    bearing_deadband: 0.04            # radians
+    heading_gate: 0.6                 # suppress translation beyond this heading error
+    max_forward_speed: 0.15
+    max_reverse_speed: 0.10
+    max_angular_speed: 0.8
+    linear_kp: 0.5
+    linear_ki: 0.0
+    linear_kd: 0.0
+    angular_kp: 1.5
+    angular_ki: 0.0
+    angular_kd: 0.0
+    observation_timeout: 0.5
+    max_future_stamp: 0.1
+    min_confidence: 0.2
