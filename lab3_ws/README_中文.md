@@ -161,6 +161,20 @@ colcon test --packages-select team_chase_object
 colcon test-result --verbose
 ```
 
+### Ubuntu 上的 ROS 2 集成测试（无需机器人）
+
+构建并加载工作空间后，运行合成数据端到端测试：
+
+```bash
+source /opt/ros/humble/setup.bash  # 使用 ROS 2 Jazzy 时改为 jazzy。
+cd ~/lab3_ws
+colcon build --symlink-install
+source install/setup.bash
+python3 src/team_chase_object/test/ros_smoke.py
+```
+
+脚本在同一进程启动三个节点，发布合成绿色图像、相机内参、LiDAR 扫描和 TF，检查方位、距离、前进速度、传感器中断停车、目标重新出现后恢复，以及目标丢失停车。它把传感器、TF 和速度话题重映射到独立命名空间，不向机器人常规的 `/cmd_vel` 发布消息。此脚本需单独运行，不属于 `colcon test`。它不能验证硬件标定、真实传感器或手册要求的 5 秒实机表现。
+
 只验证不依赖 ROS 的算法时，可在安装了 NumPy、OpenCV、pytest 的 Python 环境中运行：
 
 ```bash

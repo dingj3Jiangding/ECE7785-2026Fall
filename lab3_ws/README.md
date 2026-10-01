@@ -161,6 +161,20 @@ colcon test --packages-select team_chase_object
 colcon test-result --verbose
 ```
 
+### ROS 2 smoke test on Ubuntu (no robot required)
+
+After building and sourcing the workspace, run the synthetic end-to-end test:
+
+```bash
+source /opt/ros/humble/setup.bash  # Use jazzy for ROS 2 Jazzy.
+cd ~/lab3_ws
+colcon build --symlink-install
+source install/setup.bash
+python3 src/team_chase_object/test/ros_smoke.py
+```
+
+The script starts all three nodes in one process, publishes a synthetic green image, camera intrinsics, LiDAR scan, and TF, then checks the bearing, range, forward command, sensor-dropout stop, target reacquisition, and lost-target stop. It remaps sensor, TF, and velocity topics into a unique namespace so it does not publish to the robot's normal `/cmd_vel`. Run this script separately; it is not part of `colcon test`. It does not validate hardware calibration, real sensing, or the 5-second demo requirement.
+
 To test only the ROS-independent algorithms, use a Python environment with NumPy, OpenCV, and pytest:
 
 ```bash
