@@ -1,7 +1,9 @@
 # Lab 3：ROS 2 彩色物体跟随
 
-学生 1：**【填写姓名】**  
-学生 2：**【填写姓名】**
+[English](README.md) | [中文](README_中文.md)
+
+学生 1：**Ding Jiang**  
+学生 2：**Tongning Zhang**
 
 面向 Ubuntu 上的 ROS 2 Humble / Jazzy 和 TurtleBot3。本项目包含实验代码与启动配置；默认寻找绿色目标，通过相机确定方向、激光雷达估计距离，再控制机器人跟随。包名 `team_chase_object` 使用 `team` 作为团队名，符合小写命名要求。提交前请替换代码头部和此处的两位学生姓名；如需改团队包名，也要同步修改包目录、消息导入以外的包引用、元数据和启动配置。
 
@@ -17,6 +19,7 @@ lab3_ws/
 │       ├── team_chase_object/     # 检测、测距、控制节点
 │       ├── config/lab3.yaml       # 话题、颜色、TF、PID 和限速配置
 │       └── launch/chase_object.launch.py
+├── README.md
 └── README_中文.md
 ```
 
