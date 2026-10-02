@@ -1,10 +1,11 @@
-"""Launch the color detector, range estimator, and motion controller.
+"""Launch the camera TF, color detector, range estimator, and motion controller.
 
 Lab partners: TODO_NAME_1, TODO_NAME_2 (replace before submission).
 """
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -29,6 +30,27 @@ def generate_launch_description():
                 "use_sim_time",
                 default_value="false",
                 description="Use /clock; enable only when simulation publishes it.",
+            ),
+            DeclareLaunchArgument(
+                "publish_camera_tf",
+                default_value="true",
+                description="Publish the lab camera mounting TF; disable if another node provides it.",
+            ),
+            Node(
+                package="tf2_ros",
+                executable="static_transform_publisher",
+                name="camera_static_tf",
+                condition=IfCondition(LaunchConfiguration("publish_camera_tf")),
+                output="screen",
+                # Measured camera position relative to the LiDAR: 7 cm forward,
+                # 0 cm left, 5 cm up. Rotation assumes a level, forward-facing
+                # camera with an upright, unmirrored image (optical axes).
+                arguments=[
+                    "--x", "0.07", "--y", "0.0", "--z", "0.05",
+                    "--qx", "-0.5", "--qy", "0.5", "--qz", "-0.5", "--qw", "0.5",
+                    "--frame-id", "base_scan", "--child-frame-id", "camera",
+                ],
+                parameters=[{"use_sim_time": use_sim_time}],
             ),
             *[
                 Node(
