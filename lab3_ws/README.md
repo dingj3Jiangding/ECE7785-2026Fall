@@ -5,7 +5,7 @@
 Student 1: **Ding Jiang**  
 Student 2: **Tongning Zhang**
 
-This project targets TurtleBot3 with ROS 2 Humble or Jazzy on Ubuntu. It includes lab code and launch configuration. By default, it tracks a green target: the camera estimates its direction, LiDAR estimates its range, and the robot follows it. The package name `team_chase_object` uses `team` as a placeholder team name and satisfies the lowercase naming requirement. Before submission, replace both student names here and in the source file headers. If you change the team package name, also update the package directory, package references other than message imports, metadata, and launch configuration.
+This project targets TurtleBot3 with ROS 2 Humble or Jazzy on Ubuntu. It includes lab code and launch configuration. By default, it tracks a blue target: the camera estimates its direction, LiDAR estimates its range, and the robot follows it. The package name `team_chase_object` uses `team` as a placeholder team name and satisfies the lowercase naming requirement. Before submission, replace both student names here and in the source file headers. If you change the team package name, also update the package directory, package references other than message imports, metadata, and launch configuration.
 
 The default configuration must be calibrated for the actual robot. The current development environment is macOS without ROS 2. Local checks cannot replace an Ubuntu build, sensor integration, or a live robot demonstration. No experimental results have been filled in or fabricated for this project.
 
@@ -29,7 +29,7 @@ lab3_ws/
 | `get_object_range` | Target bearing, `/scan`, and TF | `/object/polar` (`ObjectPolar`); associates laser returns with the visual target and computes its range and bearing |
 | `chase_object` | Target range and bearing | `/cmd_vel`; follows the target with separate distance and heading control loops |
 
-The default camera image topic is `/camera/image_raw/compressed` (`sensor_msgs/msg/CompressedImage`), and the camera intrinsics topic is `/camera/camera_info` (`sensor_msgs/msg/CameraInfo`). The default laser topic is `/scan` (`sensor_msgs/msg/LaserScan`). The robot base may accept `Twist` or `TwistStamped`; by default, `cmd_vel_stamped: false` publishes `Twist`. Set it to `true` if the base subscribes to `TwistStamped`.
+The supplied `lab3.yaml` uses `/image_raw/compressed` (`sensor_msgs/msg/CompressedImage`) for camera images and `/camera_info` (`sensor_msgs/msg/CameraInfo`) for camera intrinsics, matching the lab robot's camera topics. The default laser topic is `/scan` (`sensor_msgs/msg/LaserScan`). The robot base may accept `Twist` or `TwistStamped`; by default, `cmd_vel_stamped: false` publishes `Twist`. Set it to `true` if the base subscribes to `TwistStamped`.
 
 The suggested default is to run all three nodes on the robot, consistent with the existing computation graph. The launch file starts only this lab's three nodes. Existing drivers must still start the base, camera, LiDAR, and robot TF.
 
@@ -62,8 +62,8 @@ Start the base, camera, LiDAR, and TF using the robot's existing setup, then run
 
 ```bash
 ros2 topic list -t
-ros2 topic info /camera/image_raw/compressed --verbose
-ros2 topic echo /camera/camera_info --once
+ros2 topic info /image_raw/compressed --verbose
+ros2 topic echo /camera_info --once
 ros2 topic echo /scan --once
 ros2 topic info /cmd_vel --verbose
 ```
@@ -127,7 +127,7 @@ Use a separate terminal for each command. Do not run these alongside the full la
 
 ## 5. Tune color, range, and control
 
-1. **Color segmentation:** Adjust `hsv_lower`, `hsv_upper`, `min_area`, and `morph_kernel` under the actual lab lighting. OpenCV's H range is 0–179; S and V range from 0–255. The default green range is only a starting point. Verify color detection with live images and remove distracting objects of the same color.
+1. **Color segmentation:** Adjust `hsv_lower`, `hsv_upper`, `min_area`, and `morph_kernel` under the actual lab lighting. OpenCV's H range is 0–179; S and V range from 0–255. The default blue range, `[100, 70, 60]` through `[130, 255, 255]`, is only a starting point. Prefer thresholds tuned on this camera under the test lighting; saved camera frames containing both the target and background help refine the range. Verify color detection with live images and remove distracting objects of the same color.
 2. **Bearing and ranging:** Inspect detection and ranging outputs first. Place the target in front of the robot and on both sides; check that bearing signs and ranges match reality. Move it slowly to check whether laser association stays stable. If the target disappears or no laser points match, inspect target height, TF, camera intrinsics, and timestamp synchronization.
 3. **Control parameters:** Start with two proportional loops, one for linear velocity and one for angular velocity. Integral and derivative gains remain configurable; begin with `I=0, D=0`. Tune turning at a low speed limit before tuning distance control. Reduce the relevant gain if the robot oscillates, and add derivative gain cautiously if needed. If an integral term is needed for persistent steady-state error, check output limits and anti-windup behavior.
 4. **Desired range and stopping error:** Set the desired following distance and allowable error to meet the lab requirements. Check the robot's behavior when the target is too close before increasing speed. Do not assume the defaults are suitable for the real robot.
@@ -173,7 +173,7 @@ source install/setup.bash
 python3 src/team_chase_object/test/ros_smoke.py
 ```
 
-The script starts all three nodes in one process, publishes a synthetic green image, camera intrinsics, LiDAR scan, and TF, then checks the bearing, range, forward command, sensor-dropout stop, target reacquisition, and lost-target stop. It remaps sensor, TF, and velocity topics into a unique namespace so it does not publish to the robot's normal `/cmd_vel`. Run this script separately; it is not part of `colcon test`. It does not validate hardware calibration, real sensing, or the 5-second demo requirement.
+The script starts all three nodes in one process, publishes a synthetic blue image, camera intrinsics, LiDAR scan, and TF, then checks the bearing, range, forward command, sensor-dropout stop, target reacquisition, and lost-target stop. It remaps sensor, TF, and velocity topics into a unique namespace so it does not publish to the robot's normal `/cmd_vel`. Run this script separately; it is not part of `colcon test`. It does not validate hardware calibration, real sensing, or the 5-second demo requirement.
 
 To test only the ROS-independent algorithms, use a Python environment with NumPy, OpenCV, and pytest:
 

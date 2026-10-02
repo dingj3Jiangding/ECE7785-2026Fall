@@ -5,7 +5,7 @@
 学生 1：**Ding Jiang**  
 学生 2：**Tongning Zhang**
 
-面向 Ubuntu 上的 ROS 2 Humble / Jazzy 和 TurtleBot3。本项目包含实验代码与启动配置；默认寻找绿色目标，通过相机确定方向、激光雷达估计距离，再控制机器人跟随。包名 `team_chase_object` 使用 `team` 作为团队名，符合小写命名要求。提交前请替换代码头部和此处的两位学生姓名；如需改团队包名，也要同步修改包目录、消息导入以外的包引用、元数据和启动配置。
+面向 Ubuntu 上的 ROS 2 Humble / Jazzy 和 TurtleBot3。本项目包含实验代码与启动配置；默认寻找蓝色目标，通过相机确定方向、激光雷达估计距离，再控制机器人跟随。包名 `team_chase_object` 使用 `team` 作为团队名，符合小写命名要求。提交前请替换代码头部和此处的两位学生姓名；如需改团队包名，也要同步修改包目录、消息导入以外的包引用、元数据和启动配置。
 
 代码的默认配置需要按实际机器人校准。当前开发环境是 macOS，没有 ROS 2 运行环境；本地检查不能代替 Ubuntu 上的构建、传感器联调和实机演示。本项目没有填写或虚构实验结果。
 
@@ -29,7 +29,7 @@ lab3_ws/
 | `get_object_range` | 目标方位、`/scan`、TF | `/object/polar`，`ObjectPolar`；将激光点与视觉目标关联并计算目标的距离和方向 |
 | `chase_object` | 目标距离与方向 | `/cmd_vel`；用距离和转向两个控制回路跟随目标 |
 
-默认相机图像话题为 `/camera/image_raw/compressed`，类型为 `sensor_msgs/msg/CompressedImage`；相机内参话题为 `/camera/camera_info`，类型为 `sensor_msgs/msg/CameraInfo`。默认激光话题为 `/scan`，类型为 `sensor_msgs/msg/LaserScan`。机器人底盘可能使用 `Twist` 或 `TwistStamped`；默认 `cmd_vel_stamped: false` 发布 `Twist`，如果底盘订阅 `TwistStamped`，则改为 `true`。
+随附的 `lab3.yaml` 使用实验机器人实际发布的相机话题：图像话题为 `/image_raw/compressed`，类型为 `sensor_msgs/msg/CompressedImage`；相机内参话题为 `/camera_info`，类型为 `sensor_msgs/msg/CameraInfo`。默认激光话题为 `/scan`，类型为 `sensor_msgs/msg/LaserScan`。机器人底盘可能使用 `Twist` 或 `TwistStamped`；默认 `cmd_vel_stamped: false` 发布 `Twist`，如果底盘订阅 `TwistStamped`，则改为 `true`。
 
 默认建议三个节点都在机器人端运行，与已有计算图的部署方式一致。启动文件仅启动本实验的三个节点，底盘、相机、雷达和机器人 TF 仍由已有驱动启动。
 
@@ -62,8 +62,8 @@ ros2 interface show chase_object_interfaces/msg/ObjectPolar
 
 ```bash
 ros2 topic list -t
-ros2 topic info /camera/image_raw/compressed --verbose
-ros2 topic echo /camera/camera_info --once
+ros2 topic info /image_raw/compressed --verbose
+ros2 topic echo /camera_info --once
 ros2 topic echo /scan --once
 ros2 topic info /cmd_vel --verbose
 ```
@@ -127,7 +127,7 @@ ros2 run team_chase_object chase_object --ros-args \
 
 ## 5. 颜色、距离与控制调试
 
-1. **颜色分割**：在实验实际光照下调整 `hsv_lower`、`hsv_upper`、`min_area` 与 `morph_kernel`。OpenCV 的 H 范围为 0–179，S、V 为 0–255。默认绿色只是起点，颜色判断必须用实时画面验证。同色物体过多时，应先整理实验环境。
+1. **颜色分割**：在实验实际光照下调整 `hsv_lower`、`hsv_upper`、`min_area` 与 `morph_kernel`。OpenCV 的 H 范围为 0–179，S、V 为 0–255。默认蓝色范围 `[100, 70, 60]` 到 `[130, 255, 255]` 只是起点。优先使用在这台相机、现场光照下调好的阈值；包含目标和背景的相机原始画面有助于细调范围。颜色判断必须用实时画面验证。同色物体过多时，应先整理实验环境。
 2. **方向与测距**：先观察检测、测距输出。把目标放在正前方和左右两侧，确认方位、距离与实物一致；再缓慢移动目标，检查激光关联是否稳定。如果目标丢失或没有匹配激光点，先检查目标高度、TF、相机内参及时间同步。
 3. **控制参数**：初始使用两个比例控制回路，分别控制线速度与角速度。配置中保留积分和微分项，默认从 `I=0、D=0` 开始调试。先以较低的速度上限调好转向，再调整距离回路；振荡时降低对应增益，必要时再谨慎增加微分项。积分项用于持续稳态误差时，需同时检查限幅与积分饱和保护。
 4. **目标距离与停止误差**：按实验要求设置期望跟随距离及允许误差。确认目标过近时的行为与实验空间相适应，再逐步提高速度；不要直接把默认数值视为已适配实机。
@@ -173,7 +173,7 @@ source install/setup.bash
 python3 src/team_chase_object/test/ros_smoke.py
 ```
 
-脚本在同一进程启动三个节点，发布合成绿色图像、相机内参、LiDAR 扫描和 TF，检查方位、距离、前进速度、传感器中断停车、目标重新出现后恢复，以及目标丢失停车。它把传感器、TF 和速度话题重映射到独立命名空间，不向机器人常规的 `/cmd_vel` 发布消息。此脚本需单独运行，不属于 `colcon test`。它不能验证硬件标定、真实传感器或手册要求的 5 秒实机表现。
+脚本在同一进程启动三个节点，发布合成蓝色图像、相机内参、LiDAR 扫描和 TF，检查方位、距离、前进速度、传感器中断停车、目标重新出现后恢复，以及目标丢失停车。它把传感器、TF 和速度话题重映射到独立命名空间，不向机器人常规的 `/cmd_vel` 发布消息。此脚本需单独运行，不属于 `colcon test`。它不能验证硬件标定、真实传感器或手册要求的 5 秒实机表现。
 
 只验证不依赖 ROS 的算法时，可在安装了 NumPy、OpenCV、pytest 的 Python 环境中运行：
 

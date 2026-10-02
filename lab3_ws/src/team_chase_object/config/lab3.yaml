@@ -2,14 +2,14 @@
 # Parameters are startup-only. Edit this file, then restart the launch.
 detect_object:
   ros__parameters:
-    image_topic: /camera/image_raw/compressed
+    image_topic: /image_raw/compressed
     image_transport: compressed
-    camera_info_topic: /camera/camera_info
+    camera_info_topic: /camera_info
     camera_frame: camera_optical_frame  # fallback only when image.header.frame_id is empty
     bearing_topic: /object/bearing
     debug_image_topic: /object/debug_image
-    hsv_lower: [35, 70, 60]            # OpenCV HSV: H 0..179, S/V 0..255; green target
-    hsv_upper: [85, 255, 255]
+    hsv_lower: [100, 70, 60]           # OpenCV HSV: H 0..179, S/V 0..255; blue target
+    hsv_upper: [130, 255, 255]         # starting range; tune with the actual camera and lighting
     min_area: 150.0
     morph_kernel: 3
     horizontal_fov_deg: 62.2           # fallback estimate; replace with camera's measured value

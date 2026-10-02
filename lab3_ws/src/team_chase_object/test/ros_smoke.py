@@ -56,14 +56,14 @@ class Probe(Node):
         self.create_subscription(ObjectPolar, "/object/polar", self.polars.append, 10)
         self.create_subscription(Twist, "/cmd_vel", self.commands.append, 10)
         self.tf_broadcaster = StaticTransformBroadcaster(self)
-        self.green_jpeg = self._jpeg(with_target=True)
+        self.blue_jpeg = self._jpeg(with_target=True)
         self.blank_jpeg = self._jpeg(with_target=False)
 
     @staticmethod
     def _jpeg(with_target):
         image = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
         if with_target:
-            cv2.rectangle(image, (280, 170), (360, 310), (0, 255, 0), -1)
+            cv2.rectangle(image, (280, 170), (360, 310), (255, 0, 0), -1)
         ok, encoded = cv2.imencode(".jpg", image)
         if not ok:
             raise RuntimeError("Could not encode synthetic image")
@@ -101,7 +101,7 @@ class Probe(Node):
         image.header.stamp = stamp
         image.header.frame_id = CAMERA_FRAME
         image.format = "jpeg"
-        image.data = self.green_jpeg if with_target else self.blank_jpeg
+        image.data = self.blue_jpeg if with_target else self.blank_jpeg
         self.image_pub.publish(image)
 
         scan = LaserScan()

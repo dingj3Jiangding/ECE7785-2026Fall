@@ -14,8 +14,8 @@ import numpy as np
 
 @dataclass(frozen=True)
 class DetectorConfig:
-    hsv_lower: Tuple[int, int, int] = (35, 70, 60)
-    hsv_upper: Tuple[int, int, int] = (85, 255, 255)
+    hsv_lower: Tuple[int, int, int] = (100, 70, 60)
+    hsv_upper: Tuple[int, int, int] = (130, 255, 255)
     min_area: float = 150.0
     morph_kernel: int = 3
 

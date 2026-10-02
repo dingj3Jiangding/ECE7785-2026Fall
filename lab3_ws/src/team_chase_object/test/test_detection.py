@@ -17,9 +17,10 @@ class DetectionTests(unittest.TestCase):
     def setUp(self):
         self.image = np.zeros((120, 200, 3), dtype=np.uint8)
 
-    def test_largest_green_blob_and_confidence(self):
-        cv2.rectangle(self.image, (10, 30), (39, 69), (0, 255, 0), -1)
-        cv2.rectangle(self.image, (110, 20), (169, 89), (0, 255, 0), -1)
+    def test_largest_blue_blob_ignores_larger_green_region_and_confidence(self):
+        cv2.rectangle(self.image, (0, 0), (99, 119), (0, 255, 0), -1)
+        cv2.rectangle(self.image, (10, 30), (39, 69), (255, 0, 0), -1)
+        cv2.rectangle(self.image, (110, 20), (169, 89), (255, 0, 0), -1)
         detection = detect_target(self.image, DetectorConfig())
         self.assertIsNotNone(detection)
         self.assertEqual(detection.bbox, (110, 20, 60, 70))
@@ -29,8 +30,8 @@ class DetectionTests(unittest.TestCase):
 
     def test_missing_wrong_color_and_small_noise_are_rejected(self):
         self.assertIsNone(detect_target(self.image, DetectorConfig()))
-        cv2.rectangle(self.image, (20, 20), (70, 70), (255, 0, 0), -1)
-        cv2.rectangle(self.image, (80, 10), (85, 15), (0, 255, 0), -1)
+        cv2.rectangle(self.image, (20, 20), (70, 70), (0, 255, 0), -1)
+        cv2.rectangle(self.image, (80, 10), (85, 15), (255, 0, 0), -1)
         self.assertIsNone(detect_target(self.image, DetectorConfig()))
 
     def test_hue_wrap_selects_red_on_both_sides_of_zero(self):
@@ -45,13 +46,13 @@ class DetectionTests(unittest.TestCase):
         self.assertEqual(detect_target(image, config).bbox, (10, 20, 40, 40))
 
     def test_morphology_removes_isolated_noise(self):
-        self.image[10, 10] = (0, 255, 0)
-        cv2.rectangle(self.image, (60, 30), (89, 69), (0, 255, 0), -1)
+        self.image[10, 10] = (255, 0, 0)
+        cv2.rectangle(self.image, (60, 30), (89, 69), (255, 0, 0), -1)
         detection = detect_target(self.image, DetectorConfig(min_area=1))
         self.assertEqual(detection.bbox, (60, 30, 30, 40))
 
     def test_compressed_camera_jpeg_roundtrip_retains_target_and_bearing(self):
-        cv2.rectangle(self.image, (30, 30), (89, 89), (0, 255, 0), -1)
+        cv2.rectangle(self.image, (30, 30), (89, 89), (255, 0, 0), -1)
         success, encoded = cv2.imencode(".jpg", self.image, [cv2.IMWRITE_JPEG_QUALITY, 80])
         self.assertTrue(success)
         decoded = cv2.imdecode(np.frombuffer(encoded.tobytes(), dtype=np.uint8), cv2.IMREAD_COLOR)

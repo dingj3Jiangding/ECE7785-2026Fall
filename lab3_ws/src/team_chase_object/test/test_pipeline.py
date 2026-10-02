@@ -20,7 +20,7 @@ class PipelineTests(unittest.TestCase):
     def observation(self, distance, theta, stamp):
         image = np.zeros((480, 640, 3), dtype=np.uint8)
         u = int(round(319.5 - 400 * math.tan(theta)))
-        cv2.rectangle(image, (u-40, 170), (u+40, 310), (0, 255, 0), -1)
+        cv2.rectangle(image, (u-40, 170), (u+40, 310), (255, 0, 0), -1)
         detection = detect_target(image, DetectorConfig())
         bearing, lo, hi = detection_bearings(detection, self.camera)
         angles = [-math.pi + i*math.pi/180 for i in range(360)]
