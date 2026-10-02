@@ -28,10 +28,11 @@ lab3_ws/
 | `detect_object` | 压缩相机图像、相机内参 | `/object/bearing`，`ObjectBearing`；分割目标颜色并估计图像中的方位 |
 | `get_object_range` | 目标方位、`/scan`、TF | `/object/polar`，`ObjectPolar`；将激光点与视觉目标关联并计算目标的距离和方向 |
 | `chase_object` | 目标距离与方向 | `/cmd_vel`；用距离和转向两个控制回路跟随目标 |
+| `camera_static_tf` | 启动文件中的相机安装参数 | `/tf_static`；连接 `base_scan` 与相机光学坐标系 `camera` |
 
 随附的 `lab3.yaml` 使用实验机器人实际发布的相机话题：图像话题为 `/image_raw/compressed`，类型为 `sensor_msgs/msg/CompressedImage`；相机内参话题为 `/camera_info`，类型为 `sensor_msgs/msg/CameraInfo`。默认激光话题为 `/scan`，类型为 `sensor_msgs/msg/LaserScan`。机器人底盘可能使用 `Twist` 或 `TwistStamped`；默认 `cmd_vel_stamped: false` 发布 `Twist`，如果底盘订阅 `TwistStamped`，则改为 `true`。
 
-默认建议三个节点都在机器人端运行，与已有计算图的部署方式一致。启动文件仅启动本实验的三个节点，底盘、相机、雷达和机器人 TF 仍由已有驱动启动。
+默认建议三个实验节点都在机器人端运行，与已有计算图的部署方式一致。启动文件还会启动 `camera_static_tf`；底盘、相机、雷达以及底盘到雷达的 TF 仍由已有驱动启动。
 
 参数在节点启动时读取并设为只读。修改 YAML 后需要重新启动节点；运行时不能用 `ros2 param set` 改变这些配置。
 
@@ -58,7 +59,7 @@ ros2 interface show chase_object_interfaces/msg/ObjectPolar
 
 ## 3. 先核对传感器与坐标系
 
-先按机器人已有方式启动底盘、相机、激光雷达和 TF，再执行：
+先按机器人已有方式启动底盘、相机、激光雷达以及底盘到雷达的 TF，再执行：
 
 ```bash
 ros2 topic list -t
@@ -72,7 +73,9 @@ ros2 topic info /cmd_vel --verbose
 
 TF 必须真实连接三个坐标系：激光扫描的 frame、相机 optical frame、机器人 `base_link`（或配置的底盘 frame）。相机 optical frame 的轴为右、下、前；常见底盘 frame 的轴为前、左、上。相机与雷达之间还存在安装位置与角度差，必须使用标定或机器人 URDF 中的真实外参。错误地使用单位变换会导致物体关联和转向错误。
 
-可用以下命令核对连通性，将占位符替换为实际 frame 名：
+启动文件根据实验机器人的安装位置提供 `base_scan` 到 `camera` 的静态 TF：平移为 `(0.07, 0.0, 0.05)` 米，四元数 `(x, y, z, w)` 为 `(-0.5, 0.5, -0.5, 0.5)`。这表示镜头位于雷达扫描原点前方 7 cm、上方 5 cm，并假设相机水平朝前、图像正立且未镜像。安装位置、朝向或坐标系名称改变时，需要修改 `launch/chase_object.launch.py` 中的 `camera_static_tf` 节点。
+
+可用以下命令核对连通性，将占位符替换为实际 frame 名。使用启动文件自带的相机 TF 发布器时，在第 4 节启动后检查相机的 TF 连接：
 
 ```bash
 ros2 run tf2_ros tf2_echo base_link ACTUAL_LASER_FRAME
@@ -87,12 +90,18 @@ ros2 run tf2_ros tf2_echo ACTUAL_CAMERA_OPTICAL_FRAME ACTUAL_LASER_FRAME
 
 ## 4. 启动与观察
 
-在完成话题、TF 和底盘接口核对后启动：
+在完成话题、底盘到雷达的 TF、相机安装参数和底盘接口核对后启动：
 
 ```bash
 source /opt/ros/humble/setup.bash
 source ~/lab3_ws/install/setup.bash
 ros2 launch team_chase_object chase_object.launch.py
+```
+
+启动文件会让相机 TF 发布器与三个实验节点一起持续运行。使用前先停止之前手动运行的 `static_transform_publisher`。如果机器人 URDF 或其他发布器已经提供相机 TF，可关闭自带的发布器：
+
+```bash
+ros2 launch team_chase_object chase_object.launch.py publish_camera_tf:=false
 ```
 
 使用自定义参数文件：
@@ -123,7 +132,7 @@ ros2 run team_chase_object chase_object --ros-args \
   --params-file "$HOME/lab3_ws/src/team_chase_object/config/lab3.yaml"
 ```
 
-上述三个命令各占用一个终端；不要与完整 launch 同时运行，以免出现多个速度发布者。
+上述三个命令各占用一个终端；以这种方式分别启动时，需要单独提供相机 TF。不要与完整 launch 同时运行，以免出现多个速度发布者。
 
 ## 5. 颜色、距离与控制调试
 

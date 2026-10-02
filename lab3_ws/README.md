@@ -28,10 +28,11 @@ lab3_ws/
 | `detect_object` | Compressed camera image and camera intrinsics | `/object/bearing` (`ObjectBearing`); segments the target color and estimates its image bearing |
 | `get_object_range` | Target bearing, `/scan`, and TF | `/object/polar` (`ObjectPolar`); associates laser returns with the visual target and computes its range and bearing |
 | `chase_object` | Target range and bearing | `/cmd_vel`; follows the target with separate distance and heading control loops |
+| `camera_static_tf` | Camera mounting values in the launch file | `/tf_static`; connects `base_scan` to the camera optical frame `camera` |
 
 The supplied `lab3.yaml` uses `/image_raw/compressed` (`sensor_msgs/msg/CompressedImage`) for camera images and `/camera_info` (`sensor_msgs/msg/CameraInfo`) for camera intrinsics, matching the lab robot's camera topics. The default laser topic is `/scan` (`sensor_msgs/msg/LaserScan`). The robot base may accept `Twist` or `TwistStamped`; by default, `cmd_vel_stamped: false` publishes `Twist`. Set it to `true` if the base subscribes to `TwistStamped`.
 
-The suggested default is to run all three nodes on the robot, consistent with the existing computation graph. The launch file starts only this lab's three nodes. Existing drivers must still start the base, camera, LiDAR, and robot TF.
+The suggested default is to run all three lab nodes on the robot, consistent with the existing computation graph. The launch file also starts `camera_static_tf`. Existing drivers must still start the base, camera, LiDAR, and base-to-LiDAR TF.
 
 Parameters are read at startup and declared read-only. Restart the nodes after editing the YAML file; `ros2 param set` cannot change these settings while they run.
 
@@ -58,7 +59,7 @@ Source ROS 2 and this workspace's `install/setup.bash` in every new terminal. If
 
 ## 3. Check sensors and coordinate frames first
 
-Start the base, camera, LiDAR, and TF using the robot's existing setup, then run:
+Start the base, camera, LiDAR, and base-to-LiDAR TF using the robot's existing setup, then run:
 
 ```bash
 ros2 topic list -t
@@ -72,7 +73,9 @@ Update `src/team_chase_object/config/lab3.yaml` with the actual topic names. Use
 
 TF must connect three real frames: the laser scan frame, the camera optical frame, and the robot's `base_link` (or the configured base frame). Camera optical axes point right, down, and forward; typical base-frame axes point forward, left, and up. The camera and LiDAR also have a physical offset and relative rotation. Use actual extrinsics from calibration or the robot URDF. An incorrect identity transform will produce wrong object associations and turning directions.
 
-Check TF connectivity with these commands, replacing the placeholders with actual frame names:
+The launch file supplies `base_scan` to `camera` for the measured lab mounting: translation `(0.07, 0.0, 0.05)` metres and quaternion `(x, y, z, w) = (-0.5, 0.5, -0.5, 0.5)`. This places the lens 7 cm forward and 5 cm above the scan origin and assumes a level, forward-facing camera with an upright, unmirrored image. Adjust the `camera_static_tf` node in `launch/chase_object.launch.py` for a different mounting or frame name.
+
+Check TF connectivity with these commands, replacing the placeholders with actual frame names. When using the built-in camera TF publisher, check the camera connection after starting the launch in section 4:
 
 ```bash
 ros2 run tf2_ros tf2_echo base_link ACTUAL_LASER_FRAME
@@ -87,12 +90,18 @@ Association uses only horizontal image bearing and assumes the target intersects
 
 ## 4. Launch and observe
 
-After checking topics, TF, and the base command interface, launch the nodes:
+After checking topics, the base-to-LiDAR TF, camera mounting values, and the base command interface, launch the nodes:
 
 ```bash
 source /opt/ros/humble/setup.bash
 source ~/lab3_ws/install/setup.bash
 ros2 launch team_chase_object chase_object.launch.py
+```
+
+The launch keeps the camera TF publisher running alongside the three lab nodes. Stop the previous manual `static_transform_publisher` before using this launch. If the robot URDF or another publisher already provides the camera TF, disable this publisher:
+
+```bash
+ros2 launch team_chase_object chase_object.launch.py publish_camera_tf:=false
 ```
 
 To use a custom parameter file:
@@ -123,7 +132,7 @@ ros2 run team_chase_object chase_object --ros-args \
   --params-file "$HOME/lab3_ws/src/team_chase_object/config/lab3.yaml"
 ```
 
-Use a separate terminal for each command. Do not run these alongside the full launch, or multiple nodes may publish velocity commands.
+Use a separate terminal for each command and supply camera TF separately when starting nodes this way. Do not run these alongside the full launch, or multiple nodes may publish velocity commands.
 
 ## 5. Tune color, range, and control
 
