@@ -1,0 +1,41 @@
+# Lab partners: Ding Jiang, Tongning Zhang.
+# Startup-only parameters: edit this file and restart the node after changes.
+navigate_to_goal:
+  ros__parameters:
+    odom_topic: /odom
+    scan_topic: /scan
+    cmd_vel_topic: /cmd_vel
+    cmd_vel_stamped: false          # Same default Twist interface as Lab 3.
+    base_frame: base_link
+    pose_frame: lab_start           # Debug pose only; this node does not publish TF.
+    pose_topic: /navigation/pose
+    state_topic: /navigation/state
+    waypoints_file: ""             # Empty selects installed config/wayPoints.txt.
+    goal_tolerances: [0.08, 0.12, 0.16]  # Within the lab's 0.10/0.15/0.20 m limits.
+    goal_hold_seconds: 10.0
+
+    control_rate_hz: 20.0
+    pose_timeout: 0.5
+    scan_timeout: 0.5
+    max_future_stamp: 0.1
+    min_valid_scan_fraction: 0.5
+
+    max_forward_speed: 0.15
+    max_angular_speed: 0.8
+    linear_kp: 0.5
+    angular_kp: 1.5
+    heading_gate: 0.6              # rad; turn in place above this heading error.
+
+    # Measure from base_frame to the farthest horizontal robot edge.
+    # 0.22 m is a conservative initial envelope, NOT an identified model's radius.
+    robot_radius: 0.22
+    safety_margin: 0.04
+    obstacle_trigger_distance: 0.65
+    wall_distance: 0.40           # base_frame centre to obstacle surface, metres.
+    wall_follow_speed: 0.10
+    wall_kp: 2.0
+    wall_heading_kp: 1.5
+    leave_progress: 0.10
+    min_wall_follow_seconds: 1.0
+    avoidance_timeout: 60.0
+    preferred_turn: auto          # auto, left, or right.
