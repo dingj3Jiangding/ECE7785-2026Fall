@@ -111,8 +111,8 @@ class Navigator:
         if self.config.preferred_turn != "auto":
             return 1 if self.config.preferred_turn == "left" else -1
         radius = self.config.robot_radius + self.config.safety_margin
-        left = scan.clearance(math.pi / 3, radius, 1.5) if scan.observed(math.pi / 3) else 0.0
-        right = scan.clearance(-math.pi / 3, radius, 1.5) if scan.observed(-math.pi / 3) else 0.0
+        left = scan.clearance(math.pi / 3, radius, 0.8) if scan.observed(math.pi / 3) else 0.0
+        right = scan.clearance(-math.pi / 3, radius, 0.8) if scan.observed(-math.pi / 3) else 0.0
         if abs(left - right) > 0.05:
             return 1 if left > right else -1
         return 1 if heading >= 0 else -1
