@@ -12,7 +12,7 @@ navigate_to_goal:
     state_topic: /navigation/state
     waypoints_file: ""             # Empty selects installed config/wayPoints.txt.
     goal_tolerances: [0.08, 0.12, 0.16]  # Within the lab's 0.10/0.15/0.20 m limits.
-    goal_hold_seconds: 5.0
+    goal_hold_seconds: 1.0
 
     control_rate_hz: 20.0
     pose_timeout: 0.5
