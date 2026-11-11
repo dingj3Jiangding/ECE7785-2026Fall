@@ -1,0 +1,17 @@
+# Replace the empty lists with positions measured in YOUR saved map.
+# This is ordinary YAML, not a ROS parameter file. Both nodes read the same file.
+# Units: x/y in metres, yaw in radians (0 = facing map +x).
+frame_id: map
+
+# Add the three goals selected by the instructor, in visit order:
+# waypoints:
+#   - {name: goal_1, x: <measured x>, y: <measured y>, yaw: <heading>}
+#   - {name: goal_2, x: <measured x>, y: <measured y>, yaw: <heading>}
+#   - {name: goal_3, x: <measured x>, y: <measured y>, yaw: <heading>}
+waypoints: []
+
+# At least one previously checked open location reachable from the test area.
+# Prefer multiple locations on different sides of the maze, away from walls.
+# recovery_waypoints:
+#   - {name: open_area, x: <measured x>, y: <measured y>, yaw: <heading>}
+recovery_waypoints: []
