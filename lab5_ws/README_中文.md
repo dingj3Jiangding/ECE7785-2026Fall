@@ -2,6 +2,48 @@
 
 适用环境：Ubuntu 22.04、ROS 2 Humble、实机 TurtleBot3 Burger。保留已有目录结构：`turtlebot3_recovery_lab` 直接放在 `lab5_ws` 下，构建命令显式指定包路径。
 
+## 使用运行脚本
+
+`run_lab5.sh` 把 Lab 4 使用的加载环境、构建和 launch 流程封装起来。在 Ubuntu / ROS 2 Humble 电脑上，先按下文安装依赖、填写任务文件并保存地图，然后运行：
+
+```bash
+# 在 lab5_ws 中：首次使用及修改代码后构建。
+./run_lab5.sh build
+
+# 终端 A：底盘、LiDAR、里程计和 TF 驱动应已按原来的方式启动。
+./run_lab5.sh bringup
+
+# 终端 B：在 RViz 设置初始位姿、确认定位正确后，再开始自主导航。
+./run_lab5.sh waypoints
+```
+
+脚本会加载 ROS 环境；启动命令还会加载本工作区的 `install/setup.bash`。它根据脚本自身的位置查找工作区，所以也可以从其他目录用脚本的绝对路径调用。`bringup` 启动 Nav2、恢复服务和 RViz；机器人目标导航由单独的 `waypoints` 命令开始。
+
+默认读取以下路径，均相对于脚本所在的 `lab5_ws`：
+
+- 地图：`maps/maze.yaml`，及 YAML 引用的地图图像。
+- 任务：`turtlebot3_recovery_lab/config/mission.yaml`。
+- Nav2 参数：`turtlebot3_recovery_lab/config/nav2_params.yaml`。
+
+地图和任务坐标仍需你准备。启动时直接读取源目录的任务和参数文件，修改配置后重新启动对应命令即可。默认实机时钟为 `use_sim_time:=False`；也可以用常规 ROS launch 参数覆盖默认值：
+
+```bash
+./run_lab5.sh bringup map:="/absolute/path/to/my map.yaml" rviz:=False
+./run_lab5.sh waypoints goal_timeout_sec:=600.0
+./run_lab5.sh --help
+```
+
+自定义 `mission_file:=...` 或 `use_sim_time:=...` 时，两个终端要保持一致。`build` 后的额外参数会传给 `colcon build`。
+
+环境默认值沿用仓库的 `do_config.sh`：`TURTLEBOT3_MODEL=burger`、`ROS_DOMAIN_ID=66`、`LDS_MODEL=LDS-02`；终端中已有的值优先。两个终端的 domain ID 要与机器人一致。脚本先加载 `/opt/ros/humble/setup.bash`，再自动加载存在的 `~/turtlebot3_ws/install/setup.bash`；若路径不同，可先设置：
+
+```bash
+export LAB5_ROS_SETUP=/path/to/ros/setup.bash
+export LAB5_TURTLEBOT3_SETUP=/path/to/turtlebot3_ws/install/setup.bash
+```
+
+脚本只配置它启动的进程，不会改变调用它的终端环境。另开终端执行 `ros2 topic` 等诊断命令时，仍需按下文手动 source 环境。
+
 ## 已实现的行为
 
 1. `waypoint_navigator` 从任务 YAML 读取目标，逐个发送 `NavigateToPose` action。只有前一个目标最终返回 `SUCCEEDED`，才发送下一个；目标被拒绝、失败或取消时停止。
