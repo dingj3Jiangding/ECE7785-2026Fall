@@ -8,10 +8,14 @@ frame_id: map
 #   - {name: goal_1, x: <measured x>, y: <measured y>, yaw: <heading>}
 #   - {name: goal_2, x: <measured x>, y: <measured y>, yaw: <heading>}
 #   - {name: goal_3, x: <measured x>, y: <measured y>, yaw: <heading>}
-waypoints: []
+waypoints:
+  - {name: goal_1, x: -0.0241054, y: -0.1253155, yaw: 0.0}
+  - {name: goal_2, x: 2.01252055, y: -0.1419419, yaw: 0.0}
+  - {name: goal_3, x: 2.03424692, y: 2.40327358, yaw: 0.0}
 
 # At least one previously checked open location reachable from the test area.
 # Prefer multiple locations on different sides of the maze, away from walls.
 # recovery_waypoints:
 #   - {name: open_area, x: <measured x>, y: <measured y>, yaw: <heading>}
-recovery_waypoints: []
+recovery_waypoints:
+  - {name: recovery_1, x: 1.7700598, y: -0.0968869, yaw: 0.0}
